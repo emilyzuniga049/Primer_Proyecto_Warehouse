@@ -1,0 +1,15 @@
+{
+	"name": "ls_azuresql_dw",
+	"properties": {
+		"description": "Data Warehouse de Invacom (sqldb-invacom-dw): tablas stg_*, dim_*, fact_ventas y etl_log_carga.",
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "sql-invacom-john.database.windows.net",
+			"database": "sqldb-invacom-dw",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}

@@ -1,0 +1,15 @@
+{
+	"name": "ls_azuresql_fuente",
+	"properties": {
+		"description": "Base de datos fuente Northwind de Invacom (sqldb-invacom-fuente). Solo lectura.",
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "sql-invacom-john.database.windows.net",
+			"database": "sqldb-invacom-fuente",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}

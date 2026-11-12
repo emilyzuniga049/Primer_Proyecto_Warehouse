@@ -1,0 +1,15 @@
+{
+	"name": "adf-invacom-john",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "westus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d8da3a0c-1615-46a4-b5ab-59af25825218",
+		"tenantId": "3527c728-1b66-4955-9527-f76cca01bfec"
+	}
+}

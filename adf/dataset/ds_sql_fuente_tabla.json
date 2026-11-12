@@ -1,0 +1,35 @@
+{
+	"name": "ds_sql_fuente_tabla",
+	"properties": {
+		"description": "Tabla genérica de la base fuente. Recibe el esquema y la tabla como parámetros.",
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_fuente",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"esquema": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"tabla": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "fuente"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().esquema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tabla",
+				"type": "Expression"
+			}
+		}
+	}
+}

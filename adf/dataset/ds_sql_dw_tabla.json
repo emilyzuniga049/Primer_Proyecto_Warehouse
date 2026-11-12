@@ -1,0 +1,35 @@
+{
+	"name": "ds_sql_dw_tabla",
+	"properties": {
+		"description": "Tabla genérica del DW (stg_*, dim_*, fact_*). Recibe el esquema y la tabla como parámetros.",
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_dw",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"esquema": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"tabla": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "dw"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().esquema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tabla",
+				"type": "Expression"
+			}
+		}
+	}
+}

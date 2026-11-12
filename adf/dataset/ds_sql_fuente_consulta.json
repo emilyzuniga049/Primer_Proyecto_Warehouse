@@ -1,0 +1,17 @@
+{
+	"name": "ds_sql_fuente_consulta",
+	"properties": {
+		"description": "Dataset sin tabla fija sobre la base fuente. Se usa en actividades Lookup con consulta SQL.",
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_fuente",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "fuente"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {}
+	}
+}

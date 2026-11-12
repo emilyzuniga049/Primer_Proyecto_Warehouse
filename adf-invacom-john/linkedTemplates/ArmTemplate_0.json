@@ -1,0 +1,549 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Nombre de instancia de Data Factory",
+			"defaultValue": "adf-invacom-john"
+		},
+		"ls_azuresql_dw_password": {
+			"type": "secureString",
+			"metadata": "Cadena protegida para \"password\"de \"ls_azuresql_dw\""
+		},
+		"ls_azuresql_fuente_password": {
+			"type": "secureString",
+			"metadata": "Cadena protegida para \"password\"de \"ls_azuresql_fuente\""
+		},
+		"ls_azuresql_dw_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-invacom-john.database.windows.net"
+		},
+		"ls_azuresql_dw_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-invacom-dw"
+		},
+		"ls_azuresql_dw_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "invacomadmin"
+		},
+		"ls_azuresql_fuente_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-invacom-john.database.windows.net"
+		},
+		"ls_azuresql_fuente_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-invacom-fuente"
+		},
+		"ls_azuresql_fuente_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "invacomadmin"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azuresql_dw')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Data Warehouse de Invacom (sqldb-invacom-dw): tablas stg_*, dim_*, fact_ventas y etl_log_carga.",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_azuresql_dw_properties_typeProperties_server')]",
+					"database": "[parameters('ls_azuresql_dw_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_azuresql_dw_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_azuresql_dw_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azuresql_fuente')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Base de datos fuente Northwind de Invacom (sqldb-invacom-fuente). Solo lectura.",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_azuresql_fuente_properties_typeProperties_server')]",
+					"database": "[parameters('ls_azuresql_fuente_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_azuresql_fuente_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_azuresql_fuente_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_dw_tabla')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Tabla genérica del DW (stg_*, dim_*, fact_*). Recibe el esquema y la tabla como parámetros.",
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"esquema": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"tabla": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "dw"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().esquema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tabla",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_fuente_consulta')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Dataset sin tabla fija sobre la base fuente. Se usa en actividades Lookup con consulta SQL.",
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_fuente",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "fuente"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_fuente')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_fuente_tabla')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Tabla genérica de la base fuente. Recibe el esquema y la tabla como parámetros.",
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_fuente",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"esquema": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"tabla": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "fuente"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().esquema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tabla",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_fuente')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_extraccion_stg')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Extracción a staging: lista las tablas base de sqldb-invacom-fuente (dbo) y copia cada una a dbo.stg_<tabla> en sqldb-invacom-dw. Carga completa (truncate + insert) y registro de cada copia en dbo.etl_log_carga.",
+				"activities": [
+					{
+						"name": "Listar tablas fuente",
+						"description": "Lee del catálogo INFORMATION_SCHEMA las tablas base del esquema fuente (excluye vistas y tablas de sistema).",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT TABLE_SCHEMA AS esquema, TABLE_NAME AS tabla FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '@{pipeline().parameters.esquema_fuente}' AND TABLE_NAME NOT LIKE 'sys%' ORDER BY TABLE_NAME",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_sql_fuente_consulta",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Por cada tabla",
+						"description": "Copia en paralelo (4 a la vez) cada tabla fuente a su tabla stg_ en el DW.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Listar tablas fuente",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Listar tablas fuente').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"batchCount": 4,
+							"activities": [
+								{
+									"name": "Copiar a staging",
+									"description": "Copia dbo.<tabla> de la fuente a dbo.stg_<tabla> del DW. Crea la tabla si no existe y la vacía antes de cargar.",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.01:00:00",
+										"retry": 2,
+										"retryIntervalInSeconds": 60,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [
+										{
+											"name": "Origen",
+											"value": "@{item().esquema}.@{item().tabla}"
+										},
+										{
+											"name": "Destino",
+											"value": "@{pipeline().parameters.esquema_destino}.@{pipeline().parameters.prefijo_stg}@{item().tabla}"
+										}
+									],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"preCopyScript": {
+												"value": "IF OBJECT_ID(N'[@{pipeline().parameters.esquema_destino}].[@{pipeline().parameters.prefijo_stg}@{item().tabla}]', N'U') IS NOT NULL TRUNCATE TABLE [@{pipeline().parameters.esquema_destino}].[@{pipeline().parameters.prefijo_stg}@{item().tabla}];",
+												"type": "Expression"
+											},
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": true,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_sql_fuente_tabla",
+											"type": "DatasetReference",
+											"parameters": {
+												"esquema": {
+													"value": "@item().esquema",
+													"type": "Expression"
+												},
+												"tabla": {
+													"value": "@item().tabla",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_sql_dw_tabla",
+											"type": "DatasetReference",
+											"parameters": {
+												"esquema": {
+													"value": "@pipeline().parameters.esquema_destino",
+													"type": "Expression"
+												},
+												"tabla": {
+													"value": "@concat(pipeline().parameters.prefijo_stg, item().tabla)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Registrar carga exitosa",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copiar a staging",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 1,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[usp_registrar_carga]",
+										"storedProcedureParameters": {
+											"id_ejecucion": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"pipeline": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"tabla_origen": {
+												"value": {
+													"value": "@{item().esquema}.@{item().tabla}",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"tabla_destino": {
+												"value": {
+													"value": "@{pipeline().parameters.esquema_destino}.@{pipeline().parameters.prefijo_stg}@{item().tabla}",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"estado": {
+												"value": "Exitoso",
+												"type": "String"
+											},
+											"filas_leidas": {
+												"value": {
+													"value": "@activity('Copiar a staging').output.rowsRead",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"filas_copiadas": {
+												"value": {
+													"value": "@activity('Copiar a staging').output.rowsCopied",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"duracion_seg": {
+												"value": {
+													"value": "@activity('Copiar a staging').output.copyDuration",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"mensaje_error": {
+												"value": null,
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azuresql_dw",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Registrar carga fallida",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copiar a staging",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 1,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[usp_registrar_carga]",
+										"storedProcedureParameters": {
+											"id_ejecucion": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"pipeline": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"tabla_origen": {
+												"value": {
+													"value": "@{item().esquema}.@{item().tabla}",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"tabla_destino": {
+												"value": {
+													"value": "@{pipeline().parameters.esquema_destino}.@{pipeline().parameters.prefijo_stg}@{item().tabla}",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"estado": {
+												"value": "Fallido",
+												"type": "String"
+											},
+											"filas_leidas": {
+												"value": null,
+												"type": "Int64"
+											},
+											"filas_copiadas": {
+												"value": null,
+												"type": "Int64"
+											},
+											"duracion_seg": {
+												"value": null,
+												"type": "Int32"
+											},
+											"mensaje_error": {
+												"value": {
+													"value": "@activity('Copiar a staging').error.message",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azuresql_dw",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Marcar ejecucion fallida",
+									"description": "Después de registrar el error, hace fallar la ejecución para que no aparezca como exitosa en el monitor.",
+									"type": "Fail",
+									"dependsOn": [
+										{
+											"activity": "Registrar carga fallida",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"message": {
+											"value": "@{concat('Falló la copia de ', item().esquema, '.', item().tabla, ' a staging. Revisar dbo.etl_log_carga.')}",
+											"type": "Expression"
+										},
+										"errorCode": "ETL_STG_001"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"esquema_fuente": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"esquema_destino": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"prefijo_stg": {
+						"type": "string",
+						"defaultValue": "stg_"
+					}
+				},
+				"folder": {
+					"name": "01_extraccion"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_fuente_consulta')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_fuente_tabla')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_dw_tabla')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		}
+	]
+}

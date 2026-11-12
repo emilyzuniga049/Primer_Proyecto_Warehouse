@@ -1,5 +1,6 @@
 {
 	"name": "ls_azuresql_fuente",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"description": "Base de datos fuente Northwind de Invacom (sqldb-invacom-fuente). Solo lectura.",
 		"annotations": [],
@@ -9,7 +10,9 @@
 			"database": "sqldb-invacom-fuente",
 			"encrypt": "mandatory",
 			"trustServerCertificate": false,
-			"authenticationType": "SystemAssignedManagedIdentity"
+			"authenticationType": "SQL",
+			"userName": "invacomadmin",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDg5Njk1QkE1LUJGNjktNDI0RC1CMTYyLThBQUQyNTk4OEUzOF8zZTBiOTA3Zi05N2FlLTQzY2UtYTI1NS0wMzhlMWQ4MjhhOGEiDQp9"
 		}
 	}
 }

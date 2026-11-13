@@ -25,6 +25,26 @@
 					},
 					"traceLevel": "Fine"
 				}
+			},
+			{
+				"name": "Cargar dim_tiempo",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_cargar_dim_tiempo]"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"annotations": []

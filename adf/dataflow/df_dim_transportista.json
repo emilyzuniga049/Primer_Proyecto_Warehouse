@@ -12,8 +12,23 @@
 					"name": "stgShippers"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dw_dim_transportista",
+						"type": "DatasetReference"
+					},
+					"name": "dimTransportista"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Limpiar"
+				},
+				{
+					"name": "marcarUpsert"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          shipperID as integer,",
@@ -23,7 +38,30 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT shipperID, companyName FROM dbo.stg_shippers',",
-				"     format: 'query') ~> stgShippers"
+				"     format: 'query') ~> stgShippers",
+				"stgShippers derive(transportista_id = toInteger(shipperID),",
+				"          transportista = regexReplace(trim(companyName), ' +', ' ')) ~> Limpiar",
+				"Limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+				"marcarUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          transportista_key as integer,",
+				"          transportista_id as integer,",
+				"          transportista as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['transportista_id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          transportista_id,",
+				"          transportista",
+				"     )) ~> dimTransportista"
 			]
 		}
 	}

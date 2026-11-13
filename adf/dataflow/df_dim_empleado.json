@@ -1,0 +1,108 @@
+{
+	"name": "df_dim_empleado",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_dw_consulta",
+						"type": "DatasetReference"
+					},
+					"name": "stgEmployees"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_dw_consulta",
+						"type": "DatasetReference"
+					},
+					"name": "jefes"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dw_dim_empleado",
+						"type": "DatasetReference"
+					},
+					"name": "dimEmpleado"
+				}
+			],
+			"transformations": [
+				{
+					"name": "unirJefe"
+				},
+				{
+					"name": "limpiar"
+				},
+				{
+					"name": "marcarUpsert"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          employeeID as integer,",
+				"          employeeName as string,",
+				"          title as string,",
+				"          city as string,",
+				"          country as string,",
+				"          reportsTo as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT employeeID, employeeName, title, city, country, reportsTo FROM dbo.stg_employees',",
+				"     format: 'query') ~> stgEmployees",
+				"source(output(",
+				"          jefe_id as integer,",
+				"          jefe_nombre as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT employeeID AS jefe_id, employeeName AS jefe_nombre FROM dbo.stg_employees',",
+				"     format: 'query') ~> jefes",
+				"stgEmployees, jefes join(reportsTo == jefe_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> unirJefe",
+				"unirJefe derive(empleado_id = toInteger(employeeID),",
+				"          nombre = regexReplace(trim(employeeName), ' +', ' '),",
+				"          puesto = regexReplace(trim(title), ' +', ' '),",
+				"          ciudad = trim(city),",
+				"          pais = trim(country),",
+				"          supervisor = coalesce(trim(jefe_nombre), 'Sin supervisor')) ~> limpiar",
+				"limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+				"marcarUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          empleado_key as integer,",
+				"          empleado_id as integer,",
+				"          nombre as string,",
+				"          puesto as string,",
+				"          ciudad as string,",
+				"          pais as string,",
+				"          supervisor as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['empleado_id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          empleado_id,",
+				"          nombre,",
+				"          puesto,",
+				"          ciudad,",
+				"          pais,",
+				"          supervisor",
+				"     )) ~> dimEmpleado"
+			]
+		}
+	}
+}

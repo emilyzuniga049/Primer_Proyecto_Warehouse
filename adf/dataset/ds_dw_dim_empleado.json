@@ -1,0 +1,47 @@
+{
+	"name": "ds_dw_dim_empleado",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_dw",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "empleado_key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "empleado_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "nombre",
+				"type": "nvarchar"
+			},
+			{
+				"name": "puesto",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ciudad",
+				"type": "nvarchar"
+			},
+			{
+				"name": "pais",
+				"type": "nvarchar"
+			},
+			{
+				"name": "supervisor",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_empleado"
+		}
+	}
+}

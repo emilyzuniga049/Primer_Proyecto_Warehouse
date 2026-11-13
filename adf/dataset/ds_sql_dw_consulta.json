@@ -1,0 +1,12 @@
+{
+	"name": "ds_sql_dw_consulta",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_dw",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}

@@ -1,0 +1,30 @@
+{
+	"name": "df_dim_transportista",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_dw_consulta",
+						"type": "DatasetReference"
+					},
+					"name": "stgShippers"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          shipperID as integer,",
+				"          companyName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT shipperID, companyName FROM dbo.stg_shippers',",
+				"     format: 'query') ~> stgShippers"
+			]
+		}
+	}
+}

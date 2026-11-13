@@ -1,0 +1,31 @@
+{
+	"name": "ds_dw_dim_transportista",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_dw",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "transportista_key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "transportista_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "transportista",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_transportista"
+		}
+	}
+}

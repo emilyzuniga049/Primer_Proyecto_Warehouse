@@ -1,0 +1,53 @@
+{
+	"name": "ds_dw_dim_producto",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_dw",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "producto_key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "producto_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "producto",
+				"type": "nvarchar"
+			},
+			{
+				"name": "cantidad_por_unidad",
+				"type": "nvarchar"
+			},
+			{
+				"name": "precio_lista",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "descontinuado",
+				"type": "nvarchar"
+			},
+			{
+				"name": "categoria",
+				"type": "nvarchar"
+			},
+			{
+				"name": "descripcion_categoria",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_producto"
+		}
+	}
+}

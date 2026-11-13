@@ -1,0 +1,112 @@
+{
+	"name": "df_dim_producto",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_dw_consulta",
+						"type": "DatasetReference"
+					},
+					"name": "stgProducts"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_dw_consulta",
+						"type": "DatasetReference"
+					},
+					"name": "stgCategories"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dw_dim_producto",
+						"type": "DatasetReference"
+					},
+					"name": "dimProducto"
+				}
+			],
+			"transformations": [
+				{
+					"name": "unirCategoria"
+				},
+				{
+					"name": "limpiar"
+				},
+				{
+					"name": "marcarUpsert"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          productID as integer,",
+				"          productName as string,",
+				"          quantityPerUnit as string,",
+				"          unitPrice as decimal(10,2),",
+				"          discontinued as boolean,",
+				"          categoryID as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT productID, productName, quantityPerUnit, unitPrice, discontinued, categoryID FROM dbo.stg_products',",
+				"     format: 'query') ~> stgProducts",
+				"source(output(",
+				"          categoryID as integer,",
+				"          categoryName as string,",
+				"          description as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT categoryID, categoryName, description FROM dbo.stg_categories',",
+				"     format: 'query') ~> stgCategories",
+				"stgProducts, stgCategories join(stgProducts@categoryID == stgCategories@categoryID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> unirCategoria",
+				"unirCategoria derive(producto_id = toInteger(productID),",
+				"          producto = trim(regexReplace(productName, `[ \\u00A0]+`, ' ')),",
+				"          cantidad_por_unidad = trim(regexReplace(quantityPerUnit, `[ \\u00A0]+`, ' ')),",
+				"          precio_lista = toDecimal(round(unitPrice, 2), 10, 2),",
+				"          descontinuado = iif(discontinued, 'Sí', 'No'),",
+				"          categoria = coalesce(trim(categoryName), 'Sin categoría'),",
+				"          descripcion_categoria = coalesce(trim(description), 'Sin categoría')) ~> limpiar",
+				"limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+				"marcarUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          producto_key as integer,",
+				"          producto_id as integer,",
+				"          producto as string,",
+				"          cantidad_por_unidad as string,",
+				"          precio_lista as decimal(10,2),",
+				"          descontinuado as string,",
+				"          categoria as string,",
+				"          descripcion_categoria as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['producto_id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          producto_id,",
+				"          producto,",
+				"          cantidad_por_unidad,",
+				"          precio_lista,",
+				"          descontinuado,",
+				"          categoria,",
+				"          descripcion_categoria",
+				"     )) ~> dimProducto"
+			]
+		}
+	}
+}

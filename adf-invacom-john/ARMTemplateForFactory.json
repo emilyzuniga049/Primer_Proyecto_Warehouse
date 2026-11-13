@@ -45,6 +45,168 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_carga_dimensiones')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Cargar dim_transportista",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dim_transportista",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgShippers": {},
+									"dimTransportista": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Cargar dim_tiempo",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_cargar_dim_tiempo]"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azuresql_dw",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Cargar dim_cliente",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dim_cliente",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgCustomers": {},
+									"dimCliente": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Cargar dim_producto",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dim_producto",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgProducts": {},
+									"stgCategories": {},
+									"dimProducto": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Cargar dim_empleado",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dim_empleado",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stgEmployees": {},
+									"jefes": {},
+									"dimEmpleado": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dim_transportista')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]",
+				"[concat(variables('factoryId'), '/dataflows/df_dim_cliente')]",
+				"[concat(variables('factoryId'), '/dataflows/df_dim_producto')]",
+				"[concat(variables('factoryId'), '/dataflows/df_dim_empleado')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_extraccion_stg')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -398,6 +560,225 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_dw_dim_cliente')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "cliente_key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "cliente_id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "empresa",
+						"type": "nvarchar"
+					},
+					{
+						"name": "contacto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "cargo_contacto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ciudad",
+						"type": "nvarchar"
+					},
+					{
+						"name": "pais",
+						"type": "nvarchar"
+					},
+					{
+						"name": "region",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dim_cliente"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_dw_dim_empleado')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "empleado_key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "empleado_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "nombre",
+						"type": "nvarchar"
+					},
+					{
+						"name": "puesto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ciudad",
+						"type": "nvarchar"
+					},
+					{
+						"name": "pais",
+						"type": "nvarchar"
+					},
+					{
+						"name": "supervisor",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dim_empleado"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_dw_dim_producto')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "producto_key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "producto_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "producto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "cantidad_por_unidad",
+						"type": "nvarchar"
+					},
+					{
+						"name": "precio_lista",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "descontinuado",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoria",
+						"type": "nvarchar"
+					},
+					{
+						"name": "descripcion_categoria",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dim_producto"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_dw_dim_transportista')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "transportista_key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "transportista_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "transportista",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dim_transportista"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_dw_consulta')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azuresql_dw')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_sql_dw_tabla')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -544,6 +925,405 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dim_cliente')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_dw_consulta",
+								"type": "DatasetReference"
+							},
+							"name": "stgCustomers"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_dw_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "dimCliente"
+						}
+					],
+					"transformations": [
+						{
+							"name": "limpiar"
+						},
+						{
+							"name": "marcarUpsert"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          customerID as string,",
+						"          companyName as string,",
+						"          contactName as string,",
+						"          contactTitle as string,",
+						"          city as string,",
+						"          country as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT customerID, companyName, contactName, contactTitle, city, country FROM dbo.stg_customers',",
+						"     format: 'query') ~> stgCustomers",
+						"stgCustomers derive(cliente_id = trim(customerID),",
+						"          empresa = regexReplace(trim(companyName), ' +', ' '),",
+						"          contacto = regexReplace(trim(contactName), ' +', ' '),",
+						"          cargo_contacto = regexReplace(trim(contactTitle), ' +', ' '),",
+						"          ciudad = regexReplace(trim(city), ' +', ' '),",
+						"          pais = trim(country),",
+						"          region = case(in(['USA','Canada'], trim(country)), 'Norteamérica', in(['Mexico','Brazil','Argentina','Venezuela'], trim(country)), 'Latinoamérica', 'Europa')) ~> limpiar",
+						"limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+						"marcarUpsert sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          cliente_key as integer,",
+						"          cliente_id as string,",
+						"          empresa as string,",
+						"          contacto as string,",
+						"          cargo_contacto as string,",
+						"          ciudad as string,",
+						"          pais as string,",
+						"          region as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['cliente_id'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          cliente_id,",
+						"          empresa,",
+						"          contacto,",
+						"          cargo_contacto,",
+						"          ciudad,",
+						"          pais,",
+						"          region",
+						"     )) ~> dimCliente"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_dw_consulta')]",
+				"[concat(variables('factoryId'), '/datasets/ds_dw_dim_cliente')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dim_empleado')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_dw_consulta",
+								"type": "DatasetReference"
+							},
+							"name": "stgEmployees"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sql_dw_consulta",
+								"type": "DatasetReference"
+							},
+							"name": "jefes"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_dw_dim_empleado",
+								"type": "DatasetReference"
+							},
+							"name": "dimEmpleado"
+						}
+					],
+					"transformations": [
+						{
+							"name": "unirJefe"
+						},
+						{
+							"name": "limpiar"
+						},
+						{
+							"name": "marcarUpsert"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          employeeID as integer,",
+						"          employeeName as string,",
+						"          title as string,",
+						"          city as string,",
+						"          country as string,",
+						"          reportsTo as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT employeeID, employeeName, title, city, country, reportsTo FROM dbo.stg_employees',",
+						"     format: 'query') ~> stgEmployees",
+						"source(output(",
+						"          jefe_id as integer,",
+						"          jefe_nombre as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT employeeID AS jefe_id, employeeName AS jefe_nombre FROM dbo.stg_employees',",
+						"     format: 'query') ~> jefes",
+						"stgEmployees, jefes join(reportsTo == jefe_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> unirJefe",
+						"unirJefe derive(empleado_id = toInteger(employeeID),",
+						"          nombre = regexReplace(trim(employeeName), ' +', ' '),",
+						"          puesto = regexReplace(trim(title), ' +', ' '),",
+						"          ciudad = trim(city),",
+						"          pais = trim(country),",
+						"          supervisor = coalesce(trim(jefe_nombre), 'Sin supervisor')) ~> limpiar",
+						"limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+						"marcarUpsert sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          empleado_key as integer,",
+						"          empleado_id as integer,",
+						"          nombre as string,",
+						"          puesto as string,",
+						"          ciudad as string,",
+						"          pais as string,",
+						"          supervisor as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['empleado_id'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          empleado_id,",
+						"          nombre,",
+						"          puesto,",
+						"          ciudad,",
+						"          pais,",
+						"          supervisor",
+						"     )) ~> dimEmpleado"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_dw_consulta')]",
+				"[concat(variables('factoryId'), '/datasets/ds_dw_dim_empleado')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dim_producto')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_dw_consulta",
+								"type": "DatasetReference"
+							},
+							"name": "stgProducts"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sql_dw_consulta",
+								"type": "DatasetReference"
+							},
+							"name": "stgCategories"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_dw_dim_producto",
+								"type": "DatasetReference"
+							},
+							"name": "dimProducto"
+						}
+					],
+					"transformations": [
+						{
+							"name": "unirCategoria"
+						},
+						{
+							"name": "limpiar"
+						},
+						{
+							"name": "marcarUpsert"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          productID as integer,",
+						"          productName as string,",
+						"          quantityPerUnit as string,",
+						"          unitPrice as decimal(10,2),",
+						"          discontinued as boolean,",
+						"          categoryID as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT productID, productName, quantityPerUnit, unitPrice, discontinued, categoryID FROM dbo.stg_products',",
+						"     format: 'query') ~> stgProducts",
+						"source(output(",
+						"          categoryID as integer,",
+						"          categoryName as string,",
+						"          description as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT categoryID, categoryName, description FROM dbo.stg_categories',",
+						"     format: 'query') ~> stgCategories",
+						"stgProducts, stgCategories join(stgProducts@categoryID == stgCategories@categoryID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> unirCategoria",
+						"unirCategoria derive(producto_id = toInteger(productID),",
+						"          producto = trim(regexReplace(productName, `[ \\u00A0]+`, ' ')),",
+						"          cantidad_por_unidad = trim(regexReplace(quantityPerUnit, `[ \\u00A0]+`, ' ')),",
+						"          precio_lista = toDecimal(round(unitPrice, 2), 10, 2),",
+						"          descontinuado = iif(discontinued, 'Sí', 'No'),",
+						"          categoria = coalesce(trim(categoryName), 'Sin categoría'),",
+						"          descripcion_categoria = coalesce(trim(description), 'Sin categoría')) ~> limpiar",
+						"limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+						"marcarUpsert sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          producto_key as integer,",
+						"          producto_id as integer,",
+						"          producto as string,",
+						"          cantidad_por_unidad as string,",
+						"          precio_lista as decimal(10,2),",
+						"          descontinuado as string,",
+						"          categoria as string,",
+						"          descripcion_categoria as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['producto_id'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          producto_id,",
+						"          producto,",
+						"          cantidad_por_unidad,",
+						"          precio_lista,",
+						"          descontinuado,",
+						"          categoria,",
+						"          descripcion_categoria",
+						"     )) ~> dimProducto"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_dw_consulta')]",
+				"[concat(variables('factoryId'), '/datasets/ds_dw_dim_producto')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dim_transportista')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_dw_consulta",
+								"type": "DatasetReference"
+							},
+							"name": "stgShippers"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_dw_dim_transportista",
+								"type": "DatasetReference"
+							},
+							"name": "dimTransportista"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Limpiar"
+						},
+						{
+							"name": "marcarUpsert"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          shipperID as integer,",
+						"          companyName as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT shipperID, companyName FROM dbo.stg_shippers',",
+						"     format: 'query') ~> stgShippers",
+						"stgShippers derive(transportista_id = toInteger(shipperID),",
+						"          transportista = regexReplace(trim(companyName), ' +', ' ')) ~> Limpiar",
+						"Limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+						"marcarUpsert sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          transportista_key as integer,",
+						"          transportista_id as integer,",
+						"          transportista as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['transportista_id'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          transportista_id,",
+						"          transportista",
+						"     )) ~> dimTransportista"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_dw_consulta')]",
+				"[concat(variables('factoryId'), '/datasets/ds_dw_dim_transportista')]"
+			]
 		}
 	]
 }

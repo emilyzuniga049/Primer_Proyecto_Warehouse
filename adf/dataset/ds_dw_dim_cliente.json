@@ -1,0 +1,50 @@
+{
+	"name": "ds_dw_dim_cliente",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azuresql_dw",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "cliente_key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "cliente_id",
+				"type": "nvarchar"
+			},
+			{
+				"name": "empresa",
+				"type": "nvarchar"
+			},
+			{
+				"name": "contacto",
+				"type": "nvarchar"
+			},
+			{
+				"name": "cargo_contacto",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ciudad",
+				"type": "nvarchar"
+			},
+			{
+				"name": "pais",
+				"type": "nvarchar"
+			},
+			{
+				"name": "region",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_cliente"
+		}
+	}
+}

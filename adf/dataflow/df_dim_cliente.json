@@ -1,0 +1,87 @@
+{
+	"name": "df_dim_cliente",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_dw_consulta",
+						"type": "DatasetReference"
+					},
+					"name": "stgCustomers"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_dw_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "dimCliente"
+				}
+			],
+			"transformations": [
+				{
+					"name": "limpiar"
+				},
+				{
+					"name": "marcarUpsert"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          customerID as string,",
+				"          companyName as string,",
+				"          contactName as string,",
+				"          contactTitle as string,",
+				"          city as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT customerID, companyName, contactName, contactTitle, city, country FROM dbo.stg_customers',",
+				"     format: 'query') ~> stgCustomers",
+				"stgCustomers derive(cliente_id = trim(customerID),",
+				"          empresa = regexReplace(trim(companyName), ' +', ' '),",
+				"          contacto = regexReplace(trim(contactName), ' +', ' '),",
+				"          cargo_contacto = regexReplace(trim(contactTitle), ' +', ' '),",
+				"          ciudad = regexReplace(trim(city), ' +', ' '),",
+				"          pais = trim(country),",
+				"          region = case(in(['USA','Canada'], trim(country)), 'Norteamérica', in(['Mexico','Brazil','Argentina','Venezuela'], trim(country)), 'Latinoamérica', 'Europa')) ~> limpiar",
+				"limpiar alterRow(upsertIf(true())) ~> marcarUpsert",
+				"marcarUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          cliente_key as integer,",
+				"          cliente_id as string,",
+				"          empresa as string,",
+				"          contacto as string,",
+				"          cargo_contacto as string,",
+				"          ciudad as string,",
+				"          pais as string,",
+				"          region as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['cliente_id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          cliente_id,",
+				"          empresa,",
+				"          contacto,",
+				"          cargo_contacto,",
+				"          ciudad,",
+				"          pais,",
+				"          region",
+				"     )) ~> dimCliente"
+			]
+		}
+	}
+}

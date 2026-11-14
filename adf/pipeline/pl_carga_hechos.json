@@ -1,0 +1,46 @@
+{
+	"name": "pl_carga_hechos",
+	"properties": {
+		"description": "Carga de la tabla de hechos: ejecuta dbo.usp_cargar_fact_ventas en sqldb-invacom-dw, que recarga fact_ventas desde staging buscando las llaves de las dimensiones y registra el resultado en etl_log_carga.",
+		"activities": [
+			{
+				"name": "Cargar fact_ventas",
+				"description": "Ejecuta dbo.usp_cargar_fact_ventas: recarga fact_ventas desde staging y registra el resultado en etl_log_carga.",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_cargar_fact_ventas]",
+					"storedProcedureParameters": {
+						"id_ejecucion": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipeline": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_azuresql_dw",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	}
+}

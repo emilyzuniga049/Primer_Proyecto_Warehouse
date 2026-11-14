@@ -4,16 +4,16 @@
 	"parameters": {
 		"factoryName": {
 			"type": "string",
-			"metadata": "Nombre de instancia de Data Factory",
+			"metadata": "Data Factory name",
 			"defaultValue": "adf-invacom-john"
 		},
 		"ls_azuresql_dw_password": {
 			"type": "secureString",
-			"metadata": "Cadena protegida para \"password\"de \"ls_azuresql_dw\""
+			"metadata": "Secure string for 'password' of 'ls_azuresql_dw'"
 		},
 		"ls_azuresql_fuente_password": {
 			"type": "secureString",
-			"metadata": "Cadena protegida para \"password\"de \"ls_azuresql_fuente\""
+			"metadata": "Secure string for 'password' of 'ls_azuresql_fuente'"
 		},
 		"ls_azuresql_dw_properties_typeProperties_server": {
 			"type": "string",
@@ -41,11 +41,11 @@
 		},
 		"containerUri": {
 			"type": "string",
-			"metadata": "URI de la cuenta de almacenamiento que contiene las plantillas de ARM vinculadas."
+			"metadata": "URI to storage account containing linked ARM templates"
 		},
 		"containerSasToken": {
 			"type": "string",
-			"metadata": "Token de SAS para la cuenta de almacenamiento que contiene las plantillas de ARM vinculadas"
+			"metadata": "Sas token to storage account containing linked ARM templates"
 		}
 	},
 	"variables": {

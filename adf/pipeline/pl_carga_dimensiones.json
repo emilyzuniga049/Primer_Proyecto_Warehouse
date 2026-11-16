@@ -172,7 +172,10 @@
 							"type": "String"
 						},
 						"pipeline": {
-							"value": "",
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
 							"type": "String"
 						}
 					}

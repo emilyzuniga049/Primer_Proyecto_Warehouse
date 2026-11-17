@@ -1,7 +1,7 @@
 {
 	"name": "pl_extraccion_stg",
 	"properties": {
-		"description": "Extracción a staging: lista las tablas base de sqldb-invacom-fuente (dbo) y copia cada una a dbo.stg_<tabla> en sqldb-invacom-dw. Carga completa (truncate + insert) y registro de cada copia en dbo.etl_log_carga.",
+		"description": "Extracción a staging: lista las tablas base de sqldb-invacom-fuente (dbo) y copia cada una a dbo.stg_<tabla> en sqldb-invacom-dw. Carga completa (truncate + insert) y registro de cada copia en dbo.etl_log_carga..",
 		"activities": [
 			{
 				"name": "Listar tablas fuente",
